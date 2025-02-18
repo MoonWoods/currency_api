@@ -3,7 +3,12 @@ run-name: "Checking go code at ${{ github.ref_name }}"
 
 on:
   push:
-    paths: ["**.go"]
+    paths: 
+      - '**.go'
+      - go.mod
+      - go.sum
+      - .github/workflows/golang_checks.yaml
+      - .github/actions/go-info/**
   workflow_dispatch:
 
 jobs:
