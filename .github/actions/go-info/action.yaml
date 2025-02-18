@@ -1,0 +1,49 @@
+name: "Go Module Information Extractor"
+description: "Extracts Go version and module name from go.mod."
+author: "@YoungOak"
+
+outputs:
+  version:
+    description: "The Go version extracted from the go.mod file."
+    value: "${{ steps.read-go-mod.outputs.go_version }}"
+  module:
+    description: "The Go module name extracted from the go.mod file."
+    value: "${{ steps.read-go-mod.outputs.module_name }}"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Extract Go version and module name
+      id: read-go-mod
+      shell: python
+      run: |
+        import os
+        import re
+
+        go_mod_path = "go.mod"
+
+        # Check if go.mod exists
+        if not os.path.isfile(go_mod_path):
+            raise FileNotFoundError(f"go.mod not found in the directory: {working_directory}")
+
+        # Read go.mod and extract Go version and module name
+        with open(go_mod_path, "r") as file:
+            content = file.read()
+
+        # Extract Go version
+        go_version_match = re.search(r"^go\s+([0-9]+\.[0-9]+)", content, re.MULTILINE)
+        go_version = go_version_match.group(1) if go_version_match else ""
+
+        # Extract module name
+        module_name_match = re.search(r"^module\s+(.+)", content, re.MULTILINE)
+        module_name = module_name_match.group(1) if module_name_match else ""
+
+        # Output the extracted values
+        print(f"Go version: {go_version}")
+        print(f"Go module: {module_name}")
+
+        # Set environment variables for outputs
+        with open(os.getenv("GITHUB_OUTPUT"), "a") as outputs:
+            outputs.write(f"go_version={go_version}\n")
+            outputs.write(f"module_name={module_name}\n")
+
